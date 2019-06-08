@@ -24,4 +24,4 @@ this defaults to the the current directory
 After you have the configurations, you can simply run the script as
 ```python downloader.py```
 
-Sit back and relax your files download.
+Sit back and relax while your files download.
