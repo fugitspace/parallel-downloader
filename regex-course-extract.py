@@ -19,7 +19,7 @@ print("-"*68)
 for match in findallmatch:
     code, codeint, name, units = match
     pad = 48 - len(name)
-    print("| {}{} | {} {:>{pad}} {} |".format(code, codeint, name, "|", units, pad=pad))
+    print("| {}{} | {} {:>{pad}} {:>3} {:>3}".format(code, codeint, name, "|", units, "|", pad=pad))
 print("-"*68)
 # for matchNum, match in enumerate(matches, start=1):
 #     code, codeint, title, units = match.groups()
