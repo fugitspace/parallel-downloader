@@ -3,6 +3,7 @@ import sys
 from pprint import pprint
 import re
 import time
+import shutil
 # translated, not compiled
 # syntaxt
 # no semicolons, no cruly braces, only indents
@@ -95,7 +96,7 @@ if not is_64_bit(sysinfo.machine):
 # print(sysinfo.sysname)
 
 # print(sysinfo.sysname)
-for root, dirs, files in os.walk('/home/fugit/Documents/ketang'):
+for root, dirs, files in os.walk('/opt/Documents'):
     for directory in dirs:
         if re.search(r"venv|lib|node_modules|.git|tmp", root+"/"+directory) == None:
             for f in dirs:
@@ -112,18 +113,25 @@ def get_file_extension(file_name):
     has no extension
     '''
     ext_re = r'\.([a-zA-Z0-9]{3})$'
-    return re.findall(ext_re, file_name)[0] if re.findall(ext_re, file_name) else 'Unknown'
+    match_extension = re.findall(ext_re, file_name)
+    # if match_extension:
+    #     return match_extension[0]
+    # return 'Unknown'
+    return match_extension[0] if match_extension else 'Unknown'
 
 
 def files_in_dir(dir_path):
-    '''Returns a dictionary of files in a directory'''
+    '''Returns a dictionary of files in a directory grouped by 
+    file extensions'''
     file_dict = {}
     for entry in os.scandir(dir_path):
         if entry.is_file():
             ext = get_file_extension(entry.name)
+            # check if this extension is already in the dictionary keys
             if file_dict.get(ext):
                 file_dict[ext].append(entry.name)
             else:
+                # create the new extension key
                 file_dict[ext] = [entry.name]
     return file_dict
 
@@ -134,7 +142,7 @@ def files_in_dir(dir_path):
 
 def directory_tree(dir_path):
     '''Prints files in a directory with indentation
-    dirpath: the absolute path to the directory.
+    dir_path: the absolute path to the directory.
     the variable level maintains how many tabs to indent
     '''
     level = 0
@@ -145,7 +153,6 @@ def directory_tree(dir_path):
             directory_tree(entry.path)
         else:
             print("\t"*(len(entry.path.split('/'))-5), end='')
-            
             print(entry.name)
 
 # directory_tree('/home/fugit/Documents')
@@ -168,16 +175,16 @@ def indented_directory_tree(dir_path):
             print("\t"*(len(entry.path.split('/'))-5), end='')
             print(entry.name)
 
-indented_directory_tree('/home/fugit/Documents')
+indented_directory_tree('/opt/Documents')
 
 
 def files_for_backup(dir_path):
     '''
     returns a list of files (with absolute path) ready for backup.
     '''
-    secs = 24*60*60
+    secs = 36*60*60
     timing = time.time()
-    files_for_backup = []
+    files_for_backup = [] # [(full_path, name), (full_path, name),]
 
     def check_for_backup(dir_path):
         '''checks to see if a file has been modified in the past 24 hrs.
@@ -188,7 +195,7 @@ def files_for_backup(dir_path):
                 check_for_backup(entry.path)
             else:
                 if timing - entry.stat().st_mtime <= secs:
-                    files_for_backup.append(os.path.join(entry.path, entry.name))
+                    files_for_backup.append((entry.path, entry.name))
     
     check_for_backup(dir_path)
 
@@ -198,9 +205,13 @@ def run_backup(dir_path):
     '''
     backs files to another directory
     '''
-    pass
+    destination = '/opt/backups'
 
-pprint(files_for_backup('/opt/projects/python'))
+    files_to_backup = files_for_backup(dir_path)
+    for full_path, file_name in files_to_backup:
+        shutil.copyfile(full_path, destination+'/'+file_name)
+
+run_backup('/opt/projects/python')
 
 
 # List comprehension
