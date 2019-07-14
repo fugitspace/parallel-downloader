@@ -33,6 +33,14 @@ def getDuplicates(path, dictionary):
         elif entry.is_dir():
             getDuplicates(entry.path, dictionary)
 
+def dictionary_to_list(dictionary):
+    files_list = []
+    for size, files in dictionary.items():
+        files_list.append("Files with size {}".format(size))
+        for f in files:
+            files_list.append(f)
+    return files_list
+
 # using file size as a key
 def findDuplicates(path):
     found_files = {}
@@ -44,7 +52,6 @@ def findDuplicates(path):
     return duplicates
 
 def presentDuplicateFiles(duplicate_files):
-    index = 1
     """
     Enter number to select file to delete
     Files with size: {}
@@ -52,72 +59,79 @@ def presentDuplicateFiles(duplicate_files):
     []    --location2
     []    --location3
     """
-    for size, files in duplicate_files.items():
-        print("Files with size {}".format(size))
-        for f in files:
-            print("[] {} - {}".format(index, f))
-            index += 1
+    # print duplicate files
+    index = 0
+    for f in duplicate_files:
+        if f.startswith("Files"):
+            print(f)
+        else:
+            print("[] {} {}".format(index, f))
+        index += 1
+
+def quit():
+    print("Quiting", end='')
+    time.sleep(1)
+    print('.', end='')
+    time.sleep(1)
+    print('.', end='')
+    time.sleep(1)
+    print('.')
+    exit(0)
+
+# get user input
+def get_user_file_choice():
     try:
         choice = input("Enter a file number to delete: ")
         choice = int(choice)
     except OSError as error:
         print("Make a wise choice: {}".format(error))
-    except ValueError:
+    except [ValueError, TypeError]:
         print("A number was expected.")
     finally:
-        print("Quitting")
-        exit(0)
-    index = 1
-    print("Files marked with X are going to be deleted")
-    for size, files in duplicate_files.items():
-        print("Files with size {}".format(size))
-        for f in files:
-            check = 'x' if index == int(choice) else ''
-            print("[{}] {} - {}".format(check, index, f))
-            index += 1
-    confirm = input("Confirm to delete the file marked x: [Y/y]es/[N/n]o or q to quit: ")
-    if confirm[0].lower() == 'y':
-        os.remove()
-    elif confirm[0].lower() == 'n':
-        pass
-    elif confirm[0].lower() == 'q':
-        print("Quiting", end='')
-        time.sleep(1)
-        print('.', end='')
-        time.sleep(1)
-        print('.', end='')
-        time.sleep(1)
-        print('.')
-    else:
-        second_confirm = input("Choice not recognized. Confirm to delete the file marked x: [Y/y]es/[N/n]o, or q to quit: ")
-        index = 1
-        for size, files in duplicate_files.items():
-            print("Files with size {}".format(size))
-            for f in files:
-                check = 'x' if index == int(choice) else ''
-                print("[{}] {} - {}".format(check, index, f))
-                index += 1
-        if second_confirm[0].lower() == 'y':
-            os.remove()
-        elif second_confirm[0].lower() == 'n':
-            pass
-        elif second_confirm[0].lower() == 'q':
-            print("Quiting", end='')
-            time.sleep(1)
-            print('.', end='')
-            time.sleep(1)
-            print('.', end='')
-            time.sleep(1)
-            print('.')
+        if choice:
+            return choice
+        return None
+
+def delete_file(file_index, files):
+    os.remove(files[file_index])
+
+def get_user_confirmation_option():
+    # handle user option
+    try:
+        confirm = input("Confirm to delete the file marked x: [Y/y]es/[N/n]o or q to quit: ")
+    except OSError as e:
+        print("Error: {}".format(e))
+    finally:
+        if confirm:
+            if confirm[0].lower() == 'y':
+                return 'y'
+            elif confirm[0].lower() == 'n':
+                return 'n'
+            else:
+                return None
+
+def print_marked_files(choice, files):
+    for index in range(len(files)):
+        if files[index].startswith("Files with size"):
+            print(files[index])
         else:
-            print("Option not recognized. Quitting", end='')
-            time.sleep(1)
-            print('.', end='')
-            time.sleep(1)
-            print('.', end='')
-            time.sleep(1)
-            print('.')
+            marker = 'x' if index == choice else ''
+            print("[{}] {} {}".format(marker, index, files[index]))
+
+def process_file_delete(duplicates):
+    duplicates = dictionary_to_list(duplicates)
+    # present the files
+    presentDuplicateFiles(duplicates)
+    user_choice = get_user_file_choice()
+    if not user_choice:
+        quit()
+    # print marked files
+    print_marked_files(user_choice, duplicates)
+    confirmation = get_user_confirmation_option()
+    if not confirmation or confirmation == 'n':
+        quit()
+    delete_file(user_choice, duplicates)
 
 if __name__ == '__main__':
-    duplicates = findDuplicates('/home/fugit/Desktop/schematics')
-    presentDuplicateFiles(duplicates)
+    duplicates = findDuplicates('===========put path here===========')
+    process_file_delete(duplicates)
