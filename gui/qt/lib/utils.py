@@ -1,9 +1,6 @@
 import os
+import sqlite3
+
 
 home_directory = os.environ['HOME']
-
-def save(filepath):
-    print(f"We are saving: {filepath}")
-
-def delete(filepath):
-    print(f"We are deleting: {filepath}")
+db_location = "/absolute/path/to/database/" # for sqlite
